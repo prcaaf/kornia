@@ -1,0 +1,64 @@
+论文链接：https://arxiv.org/pdf/2009.10521.pdf
+
+项目链接：https://github.com/kornia/kornia
+
+文档链接：https://kornia.readthedocs.io/en/latest/index.html
+
+
+Kornia 是一个基于 PyTorch 的可微分的计算机视觉 （differentiable computer vision） 开源库，在 Github 上已经有了 3000 星。为了兼顾传统视觉处理与深度学习的需求，Kornia 实现了：
+
+可微的基础计算机视觉算子。
+
+可微的数据增广（differentiable data augmentation）。
+
+
+由于 Kornia 是基于 PyTorch 的，它同时会具备如下特性：
+
+可微分性。所有算子的梯度都可以通过 PyTorch 的 AutoGrad 计算，并使用 PyTorch 的优化器（如：Adam）来优化。
+
+GPU/TPU 加速。除 CPU 外，Kornia 可以在 GPU 甚至 TPU 中进行运算。
+
+批数据处理。同时处理大量数据来提高运行效率。
+
+
+1.Kornia 可微计算机视觉
+
+
+为了解决不同计算机视觉领域的问题，比如颜色转换、底层图像处理、图像几何变换、特征检测等，Kornia 设计了如下图的模块。
+
+
+
+
+值得一提的是，Kornia 不仅仅是将 OpenCV 的功能用 PyTorch 重新实现，它同时也将一些传统视觉中不可微的操作可微化，譬如说裁切 （crop） 操作便是通过透视变换 （Perspective transform） 与仿射变换 （Affine transform） 实现的。
+
+基于可微性，Kornia 中传统的视觉方法也可以通过梯度下降的方法来进行优化。比如使用梯度下降的方法来实现图像深度估计 （Depth Estimation）：
+
+
+
+
+详细代码可以参考 https://github.com/kornia/kornia-examples/blob/master/depth_estimation.ipynb
+
+亦或是使用梯度下降的方法来实现图像配准 （Image Registration）：
+
+
+
+
+详细代码可以参考 https://github.com/kornia/kornia-examples/blob/master/homography.ipynb
+
+2.Kornia 可微数据增广
+
+
+深度学习中最常用的优化方法便是基于梯度的优化，但常用的数据增广库（如 TorchVision，Albumentations）并不具备可微性。为了更好地与深度学习相结合，Kornia 参考了 TorchVision 的 API 并实现了可微的数据增广（DDA, Differentiable Data Augmentation）。目前，开发团队也在持续开发更多的可微分的 2D 图像与 3D Volume 的数据增广，如下图所示（RGB 3D Volume 很少见，实现与否将由社区驱动）。
+
+
+
+
+由于 Kornia 是基于 PyTorch 开发而来的，那么数据增广的逻辑便自然而然地整合进了 PyTorch 的网络中，就像使用卷积层，池化层一样。相似的，我们可以任意定义、保存、载入 Kornia 增广模块，并在任意设备（CPU/GPU/TPU）上运算。尤其在训练中，如果你的 CPU 已经开始超负荷运行了，那么 Kornia 将会更大地提升你的训练速度与 GPU 利用率。
+
+
+
+
+同时， Kornia 的数据增广方法也可以轻松地通过梯度来进行优化。下面的例子展示了如何使用 ColorJitter 来更新图像与增广参数，其中我们通过 nn.Parameter 定义了亮度 （brightness）、饱和度 （saturation）、对比度 （contrast）这三个可微的参数，以及通过 torch.tensor 定义色相 （hue）这一不可微的参数。从结果中，我们可以看到被大学习率（learning rate=1e+5）更新的图像以及三个可微参数的变化。
+
+
+
